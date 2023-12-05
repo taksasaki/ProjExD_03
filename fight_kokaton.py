@@ -59,7 +59,14 @@ class Bird:
         #     (0, +5): pg.transform.rotozoom(img, -90, 1.0),  # 下
         #     (+5, +5): pg.transform.rotozoom(img, -45, 1.0),  # 右下
         # }
-
+        self.img = pg.transform.flip(  # 左右反転
+            pg.transform.rotozoom(  # 2倍に拡大
+                pg.image.load(f"{MAIN_DIR}/fig/{num}.png"), 
+                0, 
+                2.0), 
+            True, 
+            False
+        )
         img0=pg.transform.rotozoom(pg.image.load(f"ex03/fig/{num}.png"), 0, 2.0)  #左向き
         img = pg.transform.flip(img0, True, False)
         self.imgs = {
@@ -199,16 +206,13 @@ def main():
                 return
             #if bomb is not None:
 
-        
-        for i,bomb in enumerate(bombs):
-            if beam is not None and beam.rct.colliderect(bomb.rct):  #爆弾とビームが衝突したら
-                    bombs[i] = None
-                    beam = None
-                    bomb = None
-                    bird.change_img(6, screen)  #喜ぶ画像に切り替え
-                    pg.display.update()
-                    time.sleep(1)
-                    
+        if beam is not None and bomb is not None:
+            if bomb.rct.colliderect(beam.rct): #爆弾とビームが衝突したら
+                bomb = None
+                beam = None
+                bird.change_img(6,screen)
+                pg.display.update()
+                time.sleep(1)
                 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
