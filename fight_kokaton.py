@@ -66,6 +66,19 @@ class Bird:
             True, 
             False
         )
+        img0=pg.transform.rotozoom(pg.image.load(f"ex03/fig/{num}.png"), 0, 2.0)  #左向き
+        img = pg.transform.flip(img0, True, False)
+        self.imgs = {
+            (+5,0):img,  #右
+            (+5,-5):pg.transform.rotozoom(img,45,1.0),  #右上
+            (0,-5):pg.transform.rotozoom(img,90,1.0),  #上
+            (-5,-5):pg.transform.rotozoom(img0,-45,1.0),  #左上
+            (-5,0):img0,  #左
+            (-5,+5):pg.transform.rotozoom(img0,45,1.0),  #左下
+            (0,+5):pg.transform.rotozoom(img,-90,1.0),  #下
+            (+5,+5):pg.transform.rotozoom(img,-45,1.0)  #右下
+        }
+        self.img = self.imgs[(+5, 0)] 
         self.rct = self.img.get_rect()
         self.rct.center = xy
 
@@ -96,6 +109,8 @@ class Bird:
         self.rct.move_ip(sum_mv)
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
+        if not (sum_mv[0]==0 and sum_mv[1]==0):  #なにかしらの矢印キーが押されていたら
+            self.img=self.imgs[tuple(sum_mv)]
         screen.blit(self.img, self.rct)
 
 
@@ -193,6 +208,7 @@ def main():
                 beam = None
                 bird.change_img(6,screen)
                 pg.display.update()
+                time.sleep(1)
                 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
