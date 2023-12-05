@@ -9,7 +9,6 @@ WIDTH = 1600  # ゲームウィンドウの幅
 HEIGHT = 900  # ゲームウィンドウの高さ
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 NUM_OF_BOMBS = 5
-
 bm_place = 0,0
 
 def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
@@ -33,6 +32,7 @@ class Bird:
     """
     ゲームキャラクター（こうかとん）に関するクラス
     """
+    dire = (5,0)
     delta = {  # 押下キーと移動量の辞書
         pg.K_UP: (0, -5),
         pg.K_DOWN: (0, +5),
@@ -114,6 +114,7 @@ class Bird:
         if not (sum_mv[0]==0 and sum_mv[1]==0):  #なにかしらの矢印キーが押されていたら
             self.img=self.imgs[tuple(sum_mv)]
         screen.blit(self.img, self.rct)
+        self.dire = sum_mv
 
 
 class Bomb:
@@ -150,25 +151,9 @@ class Bomb:
             self.vx *= -1
         if not tate:
             self.vy *= -1
+        
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
-        
-        
-class Explosion:
-    def __init__(self):
-        self.exp = pg.image.load("ex03/fig/explosion.gif")
-        self.exp1 = pg.transform.flip(self.exp, False, False)
-        self.exp2 = pg.transform.flip(self.exp, True, False)
-        self.exp3 = pg.transform.flip(self.exp, False, True)
-        self.exp4 = pg.transform.flip(self.exp, True, True)
-        self.exps=[self.exp1,self.exp2,self.exp3,self.exp4]
-        self.rct = self.exp.get_rect()
-        self.rct.center = bm_place
-        self.life = 0
-
-    def update(self):
-        self.life-=1
-        
         
 class Beam:
     """
@@ -193,6 +178,35 @@ class Beam:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
         
+        
+class Explosion:
+    def __init__(self):
+        self.exp = pg.image.load("ex03/fig/explosion.gif")
+        self.exp1 = pg.transform.flip(self.exp, False, False)
+        self.exp2 = pg.transform.flip(self.exp, True, False)
+        self.exp3 = pg.transform.flip(self.exp, False, True)
+        self.exp4 = pg.transform.flip(self.exp, True, True)
+        self.exps=[self.exp1,self.exp2,self.exp3,self.exp4]
+        self.rct = self.exp.get_rect()
+        self.rct.center = bm_place
+        self.life = 0
+        
+        
+    
+        
+class Score:
+    def __init__(self):
+        self.font=pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color=(0,0,255)
+        self.scr=0
+        self.img=self.font.render(f"SCORE:{self.scr}", 0, self.color)
+        self.img_rct=self.img.get_rect()
+        self.img_plc=100,850
+
+    def update(self,screen):
+        self.img=self.font.render(f"SCORE:{self.scr}", 0, self.color)
+        screen.blit(self.img, self.img_plc)
+        
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -203,6 +217,7 @@ def main():
     bombs=[Bomb() for _ in range(NUM_OF_BOMBS)]
     beam = None
     
+    score = Score()
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -216,27 +231,29 @@ def main():
         screen.blit(bg_img, [0, 0])
         
         for bomb in bombs:
-                if bird.rct.colliderect(bomb.rct):
+            if bird.rct.colliderect(bomb.rct):
                 # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
-                    bird.change_img(8,screen)
-                    pg.display.update()
-                    time.sleep(1)
-                    return
-                    
-        for i, bomb in enumerate(bomb):
-            if beam is not None:
+                bird.change_img(8, screen)
+                pg.display.update()
+                time.sleep(1)
+                return
+            #if bomb is not None:
+
+        for i, bomb in enumerate(bombs):
+            if beam is not None and bomb is not None:
                 if bomb.rct.colliderect(beam.rct): #爆弾とビームが衝突したら
-                    bm_place=bomb.rct.center
                     bombs[i] = None
-                    bomb = None
                     beam = None
+                    score.scr+=1
                     bird.change_img(6,screen)
+                    bombs.change_ex(6.)
                     pg.display.update()
                     time.sleep(1)
                 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         bomb.update(screen)
+        score.update(screen)
         bombs = [bomb for bomb in bombs if bomb is not None]
         for bomb in bombs:
             bomb.update(screen)
