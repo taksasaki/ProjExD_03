@@ -246,7 +246,6 @@ def main():
                     beam = None
                     score.scr+=1
                     bird.change_img(6,screen)
-                    bombs.change_ex(6.)
                     pg.display.update()
                     time.sleep(1)
                 
